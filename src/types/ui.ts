@@ -39,3 +39,19 @@ export type VisualizationMode = 'table' | 'chart';
  * Chart type for visualizations
  */
 export type ChartType = 'pie' | 'bar';
+
+/**
+ * Draft changes to an asset while editing (used for live statistics preview).
+ */
+export interface AssetDraftUpdate {
+  /** Target asset id */
+  id: string;
+  /** Optional draft name */
+  name?: string;
+  /** Optional draft amount */
+  amount?: number;
+  /** Optional draft small category id */
+  smallCategoryId?: string;
+  /** Optional draft large category id */
+  largeCategoryId?: string;
+}

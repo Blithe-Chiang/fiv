@@ -9,6 +9,7 @@ import { Select } from '../common/Select';
 import { Button } from '../common/Button';
 import { validateAssetName, validateAssetAmount } from '@/utils/validators';
 import { Asset, LargeCategory, SmallCategory, CategoryAssociation } from '@/types/entities';
+import { AssetDraftUpdate } from '@/types/ui';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 
 interface AssetFormProps {
@@ -17,6 +18,7 @@ interface AssetFormProps {
   largeCategories: LargeCategory[];
   associations: CategoryAssociation[];
   currencySymbol: string;
+  onDraftChange?: (draft: AssetDraftUpdate | null) => void;
   onSubmit: (data: {
     name: string;
     amount: number;
@@ -32,6 +34,7 @@ export function AssetForm({
   largeCategories,
   associations,
   currencySymbol,
+  onDraftChange,
   onSubmit,
   onCancel,
 }: AssetFormProps) {
@@ -45,6 +48,19 @@ export function AssetForm({
 
   const debouncedName = useDebouncedValue(name, 300);
   const debouncedAmount = useDebouncedValue(amount, 300);
+
+  const emitDraftChange = () => {
+    if (!initialValue || !onDraftChange) return;
+    const amountNum = parseFloat(amount);
+    const canUseCategories = Boolean(smallCategoryId && largeCategoryId && isValidPair);
+    onDraftChange({
+      id: initialValue.id,
+      name: name.trim() || undefined,
+      amount: Number.isFinite(amountNum) ? amountNum : undefined,
+      smallCategoryId: canUseCategories ? smallCategoryId : undefined,
+      largeCategoryId: canUseCategories ? largeCategoryId : undefined,
+    });
+  };
 
   // Get valid large categories for selected small category
   const validLargeCategories = useMemo(() => {
@@ -173,11 +189,16 @@ export function AssetForm({
       });
     } catch (err: any) {
       setErrors({ submit: err.message || 'Failed to save asset' });
+      onDraftChange?.(null);
       setSubmitting(false);
     }
   };
 
   const canSubmit = name.trim() && amount && smallCategoryId && largeCategoryId && isValidPair;
+  const handleCancel = () => {
+    onDraftChange?.(null);
+    onCancel();
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -200,6 +221,7 @@ export function AssetForm({
           setName(e.target.value);
           setTouched((prev) => ({ ...prev, name: true }));
         }}
+        onBlur={emitDraftChange}
         error={errors.name}
         placeholder="e.g., Vanguard S&P 500, Apple Stock"
         maxLength={100}
@@ -215,6 +237,7 @@ export function AssetForm({
             setAmount(e.target.value);
             setTouched((prev) => ({ ...prev, amount: true }));
           }}
+          onBlur={emitDraftChange}
           error={errors.amount}
           placeholder="0.00"
           step="0.01"
@@ -226,6 +249,7 @@ export function AssetForm({
         label="Small Category"
         value={smallCategoryId}
         onChange={(e) => handleSmallCategoryChange(e.target.value)}
+        onBlur={emitDraftChange}
         error={errors.smallCategoryId}
         options={[
           { value: '', label: 'Select a small category...' },
@@ -240,6 +264,7 @@ export function AssetForm({
         label="Large Category"
         value={largeCategoryId}
         onChange={(e) => handleLargeCategoryChange(e.target.value)}
+        onBlur={emitDraftChange}
         error={errors.largeCategoryId}
         options={[
           { value: '', label: 'Select a large category...' },
@@ -251,7 +276,7 @@ export function AssetForm({
       />
 
       <div className="flex justify-end gap-2 pt-4">
-        <Button type="button" variant="secondary" onClick={onCancel} disabled={submitting}>
+        <Button type="button" variant="secondary" onClick={handleCancel} disabled={submitting}>
           Cancel
         </Button>
         <Button type="submit" disabled={!canSubmit || submitting}>

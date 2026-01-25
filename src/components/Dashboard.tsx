@@ -3,15 +3,16 @@
  * Integrates asset management, portfolio summary, and category breakdown
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { usePortfolio } from '@/hooks/usePortfolio';
 import { Asset } from '@/types/entities';
-import { VisualizationMode, ChartType } from '@/types/ui';
+import { VisualizationMode, ChartType, AssetDraftUpdate } from '@/types/ui';
 import {
   calculateLargeCategoryBreakdown,
   calculateSmallCategoryBreakdown,
   calculatePortfolioSummary
 } from '@/services/calculations';
+import { applyAssetDraft } from '@/utils/assetDraft';
 import { Button } from './common/Button';
 import { Modal } from './common/Modal';
 import { EmptyState } from './common/EmptyState';
@@ -42,25 +43,41 @@ export function Dashboard() {
   const [visualizationMode, setVisualizationMode] = useState<VisualizationMode>('table');
   const [chartType, setChartType] = useState<ChartType>('pie');
   const [deletingAssetId, setDeletingAssetId] = useState<string | null>(null);
+  const [draftAsset, setDraftAsset] = useState<AssetDraftUpdate | null>(null);
+
+  useEffect(() => {
+    if (modalState.type !== 'editAsset') {
+      setDraftAsset(null);
+      return;
+    }
+    if (draftAsset && draftAsset.id !== modalState.asset.id) {
+      setDraftAsset(null);
+    }
+  }, [modalState, draftAsset]);
+
+  const derivedAssets = useMemo(
+    () => applyAssetDraft(portfolio.assets, draftAsset),
+    [portfolio.assets, draftAsset]
+  );
 
   // Calculate portfolio metrics
   const portfolioSummary = useMemo(
-    () => calculatePortfolioSummary(portfolio.assets),
-    [portfolio.assets]
+    () => calculatePortfolioSummary(derivedAssets),
+    [derivedAssets]
   );
 
   const largeCategoryBreakdown = useMemo(
-    () => calculateLargeCategoryBreakdown(portfolio.assets, portfolio.largeCategories),
-    [portfolio.assets, portfolio.largeCategories]
+    () => calculateLargeCategoryBreakdown(derivedAssets, portfolio.largeCategories),
+    [derivedAssets, portfolio.largeCategories]
   );
 
   const smallCategoryBreakdown = useMemo(
     () => calculateSmallCategoryBreakdown(
-      portfolio.assets,
+      derivedAssets,
       portfolio.largeCategories,
       portfolio.smallCategories
     ),
-    [portfolio.assets, portfolio.largeCategories, portfolio.smallCategories]
+    [derivedAssets, portfolio.largeCategories, portfolio.smallCategories]
   );
 
   if (portfolio.loading) {
@@ -117,6 +134,7 @@ export function Dashboard() {
       await portfolio.updateAsset(id, data);
       setModalState({ type: 'none' });
       setError('');
+      setDraftAsset(null);
       toast.success('Asset updated', `${data.name} was updated.`);
     } catch (err: any) {
       throw new Error(getUserFriendlyError(err, 'Failed to update asset'));
@@ -315,6 +333,7 @@ export function Dashboard() {
             largeCategories={portfolio.largeCategories}
             associations={portfolio.associations}
             currencySymbol={portfolio.settings.currencySymbol}
+            onDraftChange={setDraftAsset}
             onSubmit={(data) => handleUpdateAsset(modalState.asset.id, data)}
             onCancel={() => setModalState({ type: 'none' })}
           />
