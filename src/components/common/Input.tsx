@@ -9,7 +9,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export function Input({ label, error, className = '', ...props }: InputProps) {
   const inputClasses = `
-    w-full px-3 py-2 border rounded-md
+    w-full min-h-[44px] px-3 py-2 border rounded-md
     focus:outline-none focus:ring-2 focus:ring-primary-500
     ${error ? 'border-red-500' : 'border-gray-300'}
     ${className}

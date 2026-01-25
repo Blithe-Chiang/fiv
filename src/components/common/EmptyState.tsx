@@ -2,6 +2,8 @@
  * EmptyState component for empty portfolio display
  */
 
+import { Button } from './Button';
+
 interface EmptyStateProps {
   title: string;
   description: string;
@@ -30,12 +32,9 @@ export function EmptyState({ title, description, action }: EmptyStateProps) {
       <h3 className="text-lg font-medium text-gray-900 mb-2">{title}</h3>
       <p className="text-gray-500 mb-6 max-w-sm">{description}</p>
       {action && (
-        <button
-          onClick={action.onClick}
-          className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-        >
+        <Button onClick={action.onClick}>
           {action.label}
-        </button>
+        </Button>
       )}
     </div>
   );

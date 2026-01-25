@@ -227,21 +227,21 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T106 [P] Add Settings panel in src/components/settings/SettingsPanel.tsx for currency symbol configuration (FR-032, FR-033)
-- [ ] T107 [P] Create Header component in src/components/layout/Header.tsx with app title and navigation
-- [ ] T108 [P] Create Layout component in src/components/layout/Layout.tsx wrapping all pages
-- [ ] T109 Add keyboard navigation support (tab order, enter to submit forms, escape to close modals)
-- [ ] T110 Add focus indicators for all interactive elements (WCAG 2.1 AA compliance)
-- [ ] T111 [P] Add loading states for all async operations (asset CRUD, import/export)
-- [ ] T112 [P] Add error boundaries for graceful error handling in src/components/common/ErrorBoundary.tsx
-- [ ] T113 Optimize calculation memoization with useMemo for expensive portfolio breakdowns
-- [ ] T114 Add localStorage quota exceeded error handling
-- [ ] T115 Add form input debouncing for real-time validation
-- [ ] T116 [P] Add success toast notifications for operations (create, update, delete, import, export)
-- [ ] T117 [P] Polish mobile touch targets (minimum 44x44px for all buttons)
-- [ ] T118 [P] Add skeleton loaders for initial portfolio load
-- [ ] T119 [P] Document component APIs with JSDoc comments
-- [ ] T120 Run final validation against quickstart.md setup guide
+- [X] T106 [P] Add Settings panel in src/components/settings/SettingsPanel.tsx for currency symbol configuration (FR-032, FR-033)
+- [X] T107 [P] Create Header component in src/components/layout/Header.tsx with app title and navigation
+- [X] T108 [P] Create Layout component in src/components/layout/Layout.tsx wrapping all pages
+- [X] T109 Add keyboard navigation support (tab order, enter to submit forms, escape to close modals)
+- [X] T110 Add focus indicators for all interactive elements (WCAG 2.1 AA compliance)
+- [X] T111 [P] Add loading states for all async operations (asset CRUD, import/export)
+- [X] T112 [P] Add error boundaries for graceful error handling in src/components/common/ErrorBoundary.tsx
+- [X] T113 Optimize calculation memoization with useMemo for expensive portfolio breakdowns
+- [X] T114 Add localStorage quota exceeded error handling
+- [X] T115 Add form input debouncing for real-time validation
+- [X] T116 [P] Add success toast notifications for operations (create, update, delete, import, export)
+- [X] T117 [P] Polish mobile touch targets (minimum 44x44px for all buttons)
+- [X] T118 [P] Add skeleton loaders for initial portfolio load
+- [X] T119 [P] Document component APIs with JSDoc comments
+- [X] T120 Run final validation against quickstart.md setup guide
 
 ---
 

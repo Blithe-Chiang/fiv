@@ -23,7 +23,7 @@ import {
   UpdateCategoryInput,
 } from '@/types/forms';
 import { ImportResult, ImportStrategy } from '@/types/importExport';
-import { StorageError } from '@/types/errors';
+import { getUserFriendlyError } from '@/utils/errors';
 
 interface UsePortfolioReturn {
   // Data
@@ -87,7 +87,7 @@ export function usePortfolio(): UsePortfolioReturn {
       setPortfolio(data);
       setLoading(false);
     } catch (err) {
-      const message = err instanceof StorageError ? err.message : 'Failed to initialize portfolio';
+      const message = getUserFriendlyError(err, 'Failed to initialize portfolio');
       setError(message);
       setLoading(false);
     }

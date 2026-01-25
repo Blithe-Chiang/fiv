@@ -10,7 +10,7 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
 
 export function Select({ label, error, options, className = '', ...props }: SelectProps) {
   const selectClasses = `
-    w-full px-3 py-2 border rounded-md
+    w-full min-h-[44px] px-3 py-2 border rounded-md
     focus:outline-none focus:ring-2 focus:ring-primary-500
     ${error ? 'border-red-500' : 'border-gray-300'}
     ${className}

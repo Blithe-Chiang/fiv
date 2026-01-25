@@ -29,11 +29,12 @@ export function ErrorMessage({ message, onDismiss }: ErrorMessageProps) {
         </div>
         {onDismiss && (
           <button
+            type="button"
             onClick={onDismiss}
-            className="ml-3 text-red-600 hover:text-red-800 focus:outline-none"
+            className="ml-3 min-h-[44px] min-w-[44px] rounded-md text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
             aria-label="Dismiss"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"

@@ -9,11 +9,13 @@ import { Button } from '../common/Button';
 import { Modal } from '../common/Modal';
 import { EmptyState } from '../common/EmptyState';
 import { ErrorMessage } from '../common/ErrorMessage';
-import { LoadingSpinner } from '../common/LoadingSpinner';
 import { CategoryList } from './CategoryList';
 import { LargeCategoryForm } from './LargeCategoryForm';
 import { SmallCategoryForm } from './SmallCategoryForm';
 import { AssociationManager } from './AssociationManager';
+import { useToast } from '../common/Toast';
+import { getUserFriendlyError } from '@/utils/errors';
+import { Skeleton } from '../common/Skeleton';
 
 type ModalState =
   | { type: 'none' }
@@ -25,11 +27,23 @@ type ModalState =
 
 export function CategoryManagement() {
   const portfolio = usePortfolio();
+  const toast = useToast();
   const [modalState, setModalState] = useState<ModalState>({ type: 'none' });
   const [error, setError] = useState('');
+  const [deletingLargeId, setDeletingLargeId] = useState<string | null>(null);
+  const [deletingSmallId, setDeletingSmallId] = useState<string | null>(null);
 
   if (portfolio.loading) {
-    return <LoadingSpinner />;
+    return (
+      <div className="max-w-4xl mx-auto p-4 space-y-6">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-56" />
+          <Skeleton className="h-4 w-72" />
+        </div>
+        <Skeleton className="h-28 w-full" />
+        <Skeleton className="h-56 w-full" />
+      </div>
+    );
   }
 
   if (portfolio.error) {
@@ -48,8 +62,9 @@ export function CategoryManagement() {
       await portfolio.createLargeCategory({ name });
       setModalState({ type: 'none' });
       setError('');
+      toast.success('Large category created', name);
     } catch (err: any) {
-      throw err;
+      throw new Error(getUserFriendlyError(err, 'Failed to save category'));
     }
   };
 
@@ -58,18 +73,23 @@ export function CategoryManagement() {
       await portfolio.updateLargeCategory(id, { name });
       setModalState({ type: 'none' });
       setError('');
+      toast.success('Large category updated', name);
     } catch (err: any) {
-      throw err;
+      throw new Error(getUserFriendlyError(err, 'Failed to save category'));
     }
   };
 
   const handleDeleteLarge = async (id: string) => {
     if (!confirm('Are you sure you want to delete this large category?')) return;
     try {
+      setDeletingLargeId(id);
       await portfolio.deleteLargeCategory(id);
       setError('');
+      toast.success('Large category deleted');
     } catch (err: any) {
-      setError(err.message || 'Failed to delete category');
+      setError(getUserFriendlyError(err, 'Failed to delete category'));
+    } finally {
+      setDeletingLargeId(null);
     }
   };
 
@@ -78,8 +98,9 @@ export function CategoryManagement() {
       await portfolio.createSmallCategory({ name });
       setModalState({ type: 'none' });
       setError('');
+      toast.success('Small category created', name);
     } catch (err: any) {
-      throw err;
+      throw new Error(getUserFriendlyError(err, 'Failed to save category'));
     }
   };
 
@@ -88,18 +109,23 @@ export function CategoryManagement() {
       await portfolio.updateSmallCategory(id, { name });
       setModalState({ type: 'none' });
       setError('');
+      toast.success('Small category updated', name);
     } catch (err: any) {
-      throw err;
+      throw new Error(getUserFriendlyError(err, 'Failed to save category'));
     }
   };
 
   const handleDeleteSmall = async (id: string) => {
     if (!confirm('Are you sure you want to delete this small category?')) return;
     try {
+      setDeletingSmallId(id);
       await portfolio.deleteSmallCategory(id);
       setError('');
+      toast.success('Small category deleted');
     } catch (err: any) {
-      setError(err.message || 'Failed to delete category');
+      setError(getUserFriendlyError(err, 'Failed to delete category'));
+    } finally {
+      setDeletingSmallId(null);
     }
   };
 
@@ -107,8 +133,9 @@ export function CategoryManagement() {
     try {
       await portfolio.createAssociation({ smallCategoryId, largeCategoryId });
       setError('');
+      toast.success('Association added');
     } catch (err: any) {
-      throw err;
+      throw new Error(getUserFriendlyError(err, 'Failed to add association'));
     }
   };
 
@@ -116,8 +143,9 @@ export function CategoryManagement() {
     try {
       await portfolio.deleteAssociation(smallCategoryId, largeCategoryId);
       setError('');
+      toast.success('Association removed');
     } catch (err: any) {
-      throw err;
+      throw new Error(getUserFriendlyError(err, 'Failed to remove association'));
     }
   };
 
@@ -160,6 +188,8 @@ export function CategoryManagement() {
           onEditSmall={(category) => setModalState({ type: 'editSmall', category })}
           onDeleteSmall={handleDeleteSmall}
           onManageAssociations={(category) => setModalState({ type: 'associations', category })}
+          deletingLargeId={deletingLargeId}
+          deletingSmallId={deletingSmallId}
         />
       )}
 

@@ -7,10 +7,16 @@ import { Button } from '../common/Button';
 import { Modal } from '../common/Modal';
 
 interface DeleteConfirmationModalProps {
+  /** Controls modal visibility. */
   isOpen: boolean;
+  /** Asset name for confirmation copy. */
   assetName: string;
+  /** Confirm handler. */
   onConfirm: () => void;
+  /** Cancel handler. */
   onCancel: () => void;
+  /** Loading state while deletion is in progress. */
+  isDeleting?: boolean;
 }
 
 export function DeleteConfirmationModal({
@@ -18,6 +24,7 @@ export function DeleteConfirmationModal({
   assetName,
   onConfirm,
   onCancel,
+  isDeleting = false,
 }: DeleteConfirmationModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={onCancel} title="Delete Asset">
@@ -54,11 +61,11 @@ export function DeleteConfirmationModal({
         </div>
 
         <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-          <Button variant="secondary" onClick={onCancel}>
+          <Button variant="secondary" onClick={onCancel} disabled={isDeleting}>
             Cancel
           </Button>
-          <Button variant="danger" onClick={onConfirm}>
-            Delete Asset
+          <Button variant="danger" onClick={onConfirm} disabled={isDeleting}>
+            {isDeleting ? 'Deleting...' : 'Delete Asset'}
           </Button>
         </div>
       </div>

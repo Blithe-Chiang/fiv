@@ -14,6 +14,10 @@ interface CategoryListProps {
   onEditSmall: (category: SmallCategory) => void;
   onDeleteSmall: (id: string) => void;
   onManageAssociations: (category: SmallCategory) => void;
+  /** Optional ID of a large category being deleted. */
+  deletingLargeId?: string | null;
+  /** Optional ID of a small category being deleted. */
+  deletingSmallId?: string | null;
 }
 
 export function CategoryList({
@@ -25,6 +29,8 @@ export function CategoryList({
   onEditSmall,
   onDeleteSmall,
   onManageAssociations,
+  deletingLargeId,
+  deletingSmallId,
 }: CategoryListProps) {
   const getAssociationsForSmall = (smallId: string) => {
     return associations
@@ -60,8 +66,9 @@ export function CategoryList({
                     variant="danger"
                     onClick={() => onDeleteLarge(category.id)}
                     className="text-sm px-3 py-1"
+                    disabled={deletingLargeId === category.id}
                   >
-                    Delete
+                    {deletingLargeId === category.id ? 'Deleting...' : 'Delete'}
                   </Button>
                 </div>
               </div>
@@ -105,8 +112,9 @@ export function CategoryList({
                         variant="danger"
                         onClick={() => onDeleteSmall(category.id)}
                         className="text-sm px-3 py-1"
+                        disabled={deletingSmallId === category.id}
                       >
-                        Delete
+                        {deletingSmallId === category.id ? 'Deleting...' : 'Delete'}
                       </Button>
                     </div>
                   </div>

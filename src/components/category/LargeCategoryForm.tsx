@@ -2,11 +2,12 @@
  * LargeCategoryForm - Form for creating/editing large categories
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Input } from '../common/Input';
 import { Button } from '../common/Button';
 import { validateCategoryName } from '@/utils/validators';
 import { LargeCategory } from '@/types/entities';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 
 interface LargeCategoryFormProps {
   initialValue?: LargeCategory;
@@ -18,6 +19,15 @@ export function LargeCategoryForm({ initialValue, onSubmit, onCancel }: LargeCat
   const [name, setName] = useState(initialValue?.name || '');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [touched, setTouched] = useState(false);
+
+  const debouncedName = useDebouncedValue(name, 300);
+
+  useEffect(() => {
+    if (!touched) return;
+    const validationError = validateCategoryName(debouncedName);
+    setError(validationError ? validationError.message : '');
+  }, [debouncedName, touched]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +53,10 @@ export function LargeCategoryForm({ initialValue, onSubmit, onCancel }: LargeCat
       <Input
         label="Category Name"
         value={name}
-        onChange={(e) => setName(e.target.value)}
+        onChange={(e) => {
+          setName(e.target.value);
+          if (!touched) setTouched(true);
+        }}
         error={error}
         placeholder="e.g., US Stocks, International Bonds"
         maxLength={50}

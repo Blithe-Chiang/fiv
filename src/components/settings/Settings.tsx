@@ -6,11 +6,15 @@ import { usePortfolio } from '@/hooks/usePortfolio';
 import { ImportExportPanel } from '../importExport/ImportExportPanel';
 import { PortfolioData } from '@/types/entities';
 import { ImportResult } from '@/types/importExport';
-import { LoadingSpinner } from '../common/LoadingSpinner';
 import { ErrorMessage } from '../common/ErrorMessage';
+import { SettingsPanel } from './SettingsPanel';
+import { useToast } from '../common/Toast';
+import { Skeleton } from '../common/Skeleton';
+import { getUserFriendlyError } from '@/utils/errors';
 
 export function Settings() {
   const portfolio = usePortfolio();
+  const toast = useToast();
 
   const handleImportSuccess = async (data: PortfolioData, _result: ImportResult) => {
     try {
@@ -18,13 +22,24 @@ export function Settings() {
       // Data has already been merged/replaced by ImportExportPanel logic
       // We just need to reload to reflect changes
       await portfolio.importData(data, 'replace');
+      toast.success('Import complete', 'Your portfolio data has been updated.');
     } catch (error: any) {
+      toast.error('Import failed', getUserFriendlyError(error, 'Failed to apply imported data.'));
       console.error('Failed to apply imported data:', error);
     }
   };
 
   if (portfolio.loading) {
-    return <LoadingSpinner />;
+    return (
+      <div className="max-w-4xl mx-auto p-4 space-y-6">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <Skeleton className="h-44 w-full" />
+        <Skeleton className="h-48 w-full" />
+      </div>
+    );
   }
 
   if (portfolio.error) {
@@ -54,23 +69,22 @@ export function Settings() {
       <ImportExportPanel
         portfolioData={portfolioData}
         onImportSuccess={handleImportSuccess}
+        onExportSuccess={() => toast.success('Export complete', 'Portfolio data downloaded.')}
       />
 
       {/* Currency Settings */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Currency Settings</h2>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-gray-900">Currency Symbol</p>
-            <p className="text-sm text-gray-600 mt-1">
-              Currently using: <strong>{portfolio.settings.currencySymbol}</strong>
-            </p>
-          </div>
-          <div className="text-sm text-gray-500">
-            Currency symbol is imported/exported with your data
-          </div>
-        </div>
-      </div>
+      <SettingsPanel
+        currencySymbol={portfolio.settings.currencySymbol}
+        onSave={async (symbol) => {
+          try {
+            await portfolio.updateSettings({ currencySymbol: symbol });
+            toast.success('Settings saved', `Currency symbol updated to ${symbol}.`);
+          } catch (error: any) {
+            toast.error('Save failed', getUserFriendlyError(error, 'Failed to update settings.'));
+            throw error;
+          }
+        }}
+      />
 
       {/* Portfolio Statistics */}
       <div className="bg-white rounded-lg shadow p-6">

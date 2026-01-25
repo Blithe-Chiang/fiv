@@ -16,7 +16,6 @@ import { Button } from './common/Button';
 import { Modal } from './common/Modal';
 import { EmptyState } from './common/EmptyState';
 import { ErrorMessage } from './common/ErrorMessage';
-import { LoadingSpinner } from './common/LoadingSpinner';
 import { AssetForm } from './asset/AssetForm';
 import { AssetList } from './asset/AssetList';
 import { DeleteConfirmationModal } from './asset/DeleteConfirmationModal';
@@ -25,6 +24,9 @@ import { LargeCategoryBreakdownTable } from './visualization/LargeCategoryBreakd
 import { SmallCategoryBreakdownTable } from './visualization/SmallCategoryBreakdownTable';
 import { BreakdownChart } from './visualization/BreakdownChart';
 import { VisualizationControls } from './visualization/VisualizationControls';
+import { useToast } from './common/Toast';
+import { getUserFriendlyError } from '@/utils/errors';
+import { Skeleton } from './common/Skeleton';
 
 type ModalState =
   | { type: 'none' }
@@ -34,10 +36,12 @@ type ModalState =
 
 export function Dashboard() {
   const portfolio = usePortfolio();
+  const toast = useToast();
   const [modalState, setModalState] = useState<ModalState>({ type: 'none' });
   const [error, setError] = useState('');
   const [visualizationMode, setVisualizationMode] = useState<VisualizationMode>('table');
   const [chartType, setChartType] = useState<ChartType>('pie');
+  const [deletingAssetId, setDeletingAssetId] = useState<string | null>(null);
 
   // Calculate portfolio metrics
   const portfolioSummary = useMemo(
@@ -60,7 +64,16 @@ export function Dashboard() {
   );
 
   if (portfolio.loading) {
-    return <LoadingSpinner />;
+    return (
+      <div className="max-w-7xl mx-auto p-4 space-y-6">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-56" />
+          <Skeleton className="h-4 w-80" />
+        </div>
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
   }
 
   if (portfolio.error) {
@@ -85,8 +98,9 @@ export function Dashboard() {
       await portfolio.createAsset(data);
       setModalState({ type: 'none' });
       setError('');
+      toast.success('Asset added', `${data.name} was added to your portfolio.`);
     } catch (err: any) {
-      throw err;
+      throw new Error(getUserFriendlyError(err, 'Failed to save asset'));
     }
   };
 
@@ -103,8 +117,9 @@ export function Dashboard() {
       await portfolio.updateAsset(id, data);
       setModalState({ type: 'none' });
       setError('');
+      toast.success('Asset updated', `${data.name} was updated.`);
     } catch (err: any) {
-      throw err;
+      throw new Error(getUserFriendlyError(err, 'Failed to update asset'));
     }
   };
 
@@ -117,12 +132,16 @@ export function Dashboard() {
   const confirmDeleteAsset = async () => {
     if (modalState.type !== 'deleteAsset') return;
     try {
+      setDeletingAssetId(modalState.asset.id);
       await portfolio.deleteAsset(modalState.asset.id);
       setModalState({ type: 'none' });
       setError('');
+      toast.success('Asset deleted', `${modalState.asset.name} was removed.`);
     } catch (err: any) {
-      setError(err.message || 'Failed to delete asset');
+      setError(getUserFriendlyError(err, 'Failed to delete asset'));
       setModalState({ type: 'none' });
+    } finally {
+      setDeletingAssetId(null);
     }
   };
 
@@ -308,6 +327,9 @@ export function Dashboard() {
         assetName={modalState.type === 'deleteAsset' ? modalState.asset.name : ''}
         onConfirm={confirmDeleteAsset}
         onCancel={() => setModalState({ type: 'none' })}
+        isDeleting={
+          modalState.type === 'deleteAsset' && deletingAssetId === modalState.asset.id
+        }
       />
     </div>
   );

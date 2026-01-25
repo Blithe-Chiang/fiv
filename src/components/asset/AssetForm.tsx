@@ -3,12 +3,13 @@
  * Includes category selection with association validation
  */
 
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Input } from '../common/Input';
 import { Select } from '../common/Select';
 import { Button } from '../common/Button';
 import { validateAssetName, validateAssetAmount } from '@/utils/validators';
 import { Asset, LargeCategory, SmallCategory, CategoryAssociation } from '@/types/entities';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 
 interface AssetFormProps {
   initialValue?: Asset;
@@ -40,6 +41,10 @@ export function AssetForm({
   const [largeCategoryId, setLargeCategoryId] = useState(initialValue?.largeCategoryId || '');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [touched, setTouched] = useState({ name: false, amount: false });
+
+  const debouncedName = useDebouncedValue(name, 300);
+  const debouncedAmount = useDebouncedValue(amount, 300);
 
   // Get valid large categories for selected small category
   const validLargeCategories = useMemo(() => {
@@ -66,6 +71,35 @@ export function AssetForm({
       (a) => a.smallCategoryId === smallCategoryId && a.largeCategoryId === largeCategoryId
     );
   }, [smallCategoryId, largeCategoryId, associations]);
+
+  useEffect(() => {
+    if (!touched.name) return;
+    const nameError = validateAssetName(debouncedName);
+    setErrors((prev) => {
+      const next = { ...prev };
+      if (nameError) {
+        next.name = nameError.message;
+      } else {
+        delete next.name;
+      }
+      return next;
+    });
+  }, [debouncedName, touched.name]);
+
+  useEffect(() => {
+    if (!touched.amount) return;
+    const amountNum = parseFloat(debouncedAmount);
+    const amountError = validateAssetAmount(amountNum);
+    setErrors((prev) => {
+      const next = { ...prev };
+      if (amountError) {
+        next.amount = amountError.message;
+      } else {
+        delete next.amount;
+      }
+      return next;
+    });
+  }, [debouncedAmount, touched.amount]);
 
   const handleSmallCategoryChange = (value: string) => {
     setSmallCategoryId(value);
@@ -162,7 +196,10 @@ export function AssetForm({
       <Input
         label="Asset Name"
         value={name}
-        onChange={(e) => setName(e.target.value)}
+        onChange={(e) => {
+          setName(e.target.value);
+          setTouched((prev) => ({ ...prev, name: true }));
+        }}
         error={errors.name}
         placeholder="e.g., Vanguard S&P 500, Apple Stock"
         maxLength={100}
@@ -174,7 +211,10 @@ export function AssetForm({
           label={`Amount (${currencySymbol})`}
           type="number"
           value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+          onChange={(e) => {
+            setAmount(e.target.value);
+            setTouched((prev) => ({ ...prev, amount: true }));
+          }}
           error={errors.amount}
           placeholder="0.00"
           step="0.01"

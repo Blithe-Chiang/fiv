@@ -2,11 +2,12 @@
  * SmallCategoryForm - Form for creating/editing small categories
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Input } from '../common/Input';
 import { Button } from '../common/Button';
 import { validateCategoryName } from '@/utils/validators';
 import { SmallCategory } from '@/types/entities';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 
 interface SmallCategoryFormProps {
   initialValue?: SmallCategory;
@@ -18,6 +19,15 @@ export function SmallCategoryForm({ initialValue, onSubmit, onCancel }: SmallCat
   const [name, setName] = useState(initialValue?.name || '');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [touched, setTouched] = useState(false);
+
+  const debouncedName = useDebouncedValue(name, 300);
+
+  useEffect(() => {
+    if (!touched) return;
+    const validationError = validateCategoryName(debouncedName);
+    setError(validationError ? validationError.message : '');
+  }, [debouncedName, touched]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +53,10 @@ export function SmallCategoryForm({ initialValue, onSubmit, onCancel }: SmallCat
       <Input
         label="Category Name"
         value={name}
-        onChange={(e) => setName(e.target.value)}
+        onChange={(e) => {
+          setName(e.target.value);
+          if (!touched) setTouched(true);
+        }}
         error={error}
         placeholder="e.g., S&P 500 Index, Growth Stocks"
         maxLength={50}
