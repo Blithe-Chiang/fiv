@@ -144,17 +144,17 @@ export function ImportExportPanel({
     : [];
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 space-y-6">
+    <div className="space-y-6 rounded-[28px] border border-slate-200/80 bg-white p-6 shadow-[0_20px_60px_-44px_rgba(15,23,42,0.35)]">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Data Portability</h2>
-        <p className="text-sm text-gray-600">
+        <h2 className="mb-2 text-xl font-semibold text-slate-950">Data Portability</h2>
+        <p className="text-sm leading-6 text-slate-600">
           Export your portfolio to backup your data, or import from a previously exported file.
         </p>
       </div>
 
       {/* Success Message */}
       {success && (
-        <div className="bg-green-50 border border-green-200 rounded-md p-4">
+        <div className="rounded-2xl border border-green-200 bg-green-50 p-4">
           <div className="flex items-start">
             <svg
               className="w-5 h-5 text-green-600 mt-0.5 mr-3"
@@ -183,9 +183,9 @@ export function ImportExportPanel({
       )}
 
       {/* Export/Import Buttons */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="border border-gray-200 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">Export</h3>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">Export</h3>
           <ExportButton
             portfolioData={portfolioData}
             onSuccess={handleExportSuccess}
@@ -193,8 +193,8 @@ export function ImportExportPanel({
           />
         </div>
 
-        <div className="border border-gray-200 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">Import</h3>
+        <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">Import</h3>
           <ImportButton
             onFileSelected={handleFileSelected}
             onError={handleImportError}
@@ -203,9 +203,9 @@ export function ImportExportPanel({
       </div>
 
       {/* Info Section */}
-      <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-        <h4 className="text-sm font-medium text-blue-900 mb-2">How it works</h4>
-        <ul className="text-sm text-blue-800 space-y-1 ml-4 list-disc">
+      <div className="rounded-2xl border border-primary-100 bg-primary-50/60 p-4">
+        <h4 className="mb-2 text-sm font-semibold text-primary-700">How it works</h4>
+        <ul className="ml-4 list-disc space-y-1 text-sm text-primary-700">
           <li>
             <strong>Export:</strong> Download your complete portfolio as a JSON file for backup
           </li>

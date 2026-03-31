@@ -17,15 +17,14 @@ interface LayoutWithNavigationProps {
 }
 
 export function Layout({ children }: LayoutProps) {
-  return <div className="min-h-screen bg-gray-50">{children}</div>;
+  return <div className="min-h-screen bg-transparent">{children}</div>;
 }
 
 export function LayoutWithNavigation({ view, onViewChange, children }: LayoutWithNavigationProps) {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-transparent">
       <Header view={view} onViewChange={onViewChange} />
-      {/* Main Content */}
-      <main className="py-6">{children}</main>
+      <main className="pb-10 pt-6 sm:pt-8 lg:pb-14 lg:pt-10">{children}</main>
     </div>
   );
 }

@@ -12,7 +12,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   Cell,
   ResponsiveContainer,
 } from 'recharts';
@@ -52,7 +51,7 @@ export function BreakdownChart({
 }: BreakdownChartProps) {
   if (breakdowns.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+      <div className="rounded-[28px] border border-slate-200 bg-white p-8 text-center text-slate-500 shadow-sm">
         No data to display. Add assets to see your portfolio visualization.
       </div>
     );
@@ -80,21 +79,22 @@ export function BreakdownChart({
 
   // Sort by value descending for better visualization
   const sortedData = [...chartData].sort((a, b) => b.value - a.value);
+  const topEntries = sortedData.slice(0, 5);
 
   // Custom tooltip
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-white border border-gray-300 rounded-lg shadow-lg p-3">
-          <p className="font-semibold text-gray-900">{data.name}</p>
+        <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
+          <p className="font-semibold text-slate-900">{data.name}</p>
           {data.largeCategoryName && (
-            <p className="text-sm text-gray-600">{data.largeCategoryName}</p>
+            <p className="text-sm text-slate-500">{data.largeCategoryName}</p>
           )}
-          <p className="text-sm text-gray-900 mt-1">
+          <p className="mt-1 text-sm tabular-nums text-slate-900">
             Amount: {formatCurrency(data.value, currencySymbol)}
           </p>
-          <p className="text-sm text-primary-600 font-medium">
+          <p className="text-sm font-medium text-primary-600">
             {formatPercentage(data.percentage)}
           </p>
         </div>
@@ -104,106 +104,117 @@ export function BreakdownChart({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-      </div>
-      <div className="p-6">
-        {chartType === 'pie' ? (
-          <ResponsiveContainer width="100%" height={400}>
-            <PieChart>
-              <Pie
-                data={sortedData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percentage }) => `${name} (${formatPercentage(percentage)})`}
-                outerRadius={120}
-                fill="#8884d8"
-                dataKey="value"
-                aria-label={`Pie chart showing portfolio breakdown by category. ${sortedData.length} categories displayed.`}
-              >
-                {sortedData.map((_entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={CHART_COLORS[index % CHART_COLORS.length]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-              <Legend
-                verticalAlign="bottom"
-                height={36}
-                formatter={(value, _entry: any) => {
-                  const data = sortedData.find((d) => d.name === value);
-                  return `${value} - ${formatPercentage(data?.percentage || 0)}`;
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        ) : (
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart
-              data={sortedData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
-              aria-label={`Bar chart showing portfolio breakdown by category. ${sortedData.length} categories displayed.`}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="name"
-                angle={-45}
-                textAnchor="end"
-                height={100}
-                tick={{ fontSize: 12 }}
-              />
-              <YAxis
-                label={{
-                  value: `Amount (${currencySymbol})`,
-                  angle: -90,
-                  position: 'insideLeft',
-                }}
-                tick={{ fontSize: 12 }}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend
-                verticalAlign="top"
-                height={36}
-                formatter={() => 'Amount'}
-              />
-              <Bar dataKey="value" fill="#0ea5e9" name="Amount">
-                {sortedData.map((_entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={CHART_COLORS[index % CHART_COLORS.length]}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        )}
-      </div>
-
-      {/* Mobile-friendly data summary */}
-      <div className="px-6 pb-4 sm:hidden">
-        <div className="text-sm text-gray-600">
-          <p className="font-medium mb-2">Categories:</p>
-          <ul className="space-y-1">
-            {sortedData.slice(0, 5).map((item, index) => (
-              <li key={index} className="flex justify-between">
-                <span className="truncate mr-2">{item.name}</span>
-                <span className="font-medium whitespace-nowrap">
-                  {formatPercentage(item.percentage)}
-                </span>
-              </li>
-            ))}
-            {sortedData.length > 5 && (
-              <li className="text-gray-400">
-                +{sortedData.length - 5} more categories
-              </li>
-            )}
-          </ul>
+    <section className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-[0_20px_60px_-44px_rgba(15,23,42,0.35)]">
+      <div className="border-b border-slate-200 px-5 py-5 sm:px-6">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+          Visual Breakdown
+        </p>
+        <div className="mt-2 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h3 className="text-2xl font-semibold text-slate-950">{title}</h3>
+            <p className="mt-1 text-sm leading-6 text-slate-500">
+              Compare proportional exposure and concentration by category.
+            </p>
+          </div>
+          <div className="inline-flex rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+            <span className="font-semibold text-slate-900">{sortedData.length}</span>
+            <span className="ml-2">categories visualized</span>
+          </div>
         </div>
       </div>
-    </div>
+
+      <div className="grid gap-6 p-5 sm:p-6 xl:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-3 sm:p-4">
+          {chartType === 'pie' ? (
+            <ResponsiveContainer width="100%" height={360}>
+              <PieChart>
+                <Pie
+                  data={sortedData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={72}
+                  outerRadius={128}
+                  paddingAngle={2}
+                  labelLine={false}
+                  fill="#2563eb"
+                  dataKey="value"
+                  aria-label={`Pie chart showing portfolio breakdown by category. ${sortedData.length} categories displayed.`}
+                >
+                  {sortedData.map((_entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={CHART_COLORS[index % CHART_COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <ResponsiveContainer width="100%" height={360}>
+              <BarChart
+                data={sortedData}
+                margin={{ top: 16, right: 12, left: 4, bottom: 52 }}
+                aria-label={`Bar chart showing portfolio breakdown by category. ${sortedData.length} categories displayed.`}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" vertical={false} />
+                <XAxis
+                  dataKey="name"
+                  angle={-35}
+                  textAnchor="end"
+                  height={72}
+                  tick={{ fontSize: 12, fill: '#64748b' }}
+                />
+                <YAxis tick={{ fontSize: 12, fill: '#64748b' }} />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar dataKey="value" name="Amount" radius={[10, 10, 0, 0]}>
+                  {sortedData.map((_entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={CHART_COLORS[index % CHART_COLORS.length]}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+
+        <div className="rounded-[24px] border border-slate-200 bg-white p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+            Top Exposure
+          </p>
+          <ul className="mt-4 space-y-3">
+            {topEntries.map((item, index) => (
+              <li
+                key={`${item.name}-${index}`}
+                className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-slate-900">{item.name}</p>
+                    {'largeCategoryName' in item && item.largeCategoryName ? (
+                      <p className="mt-1 text-xs text-slate-500">{item.largeCategoryName}</p>
+                    ) : null}
+                  </div>
+                  <span className="text-sm font-semibold tabular-nums text-slate-900">
+                    {formatPercentage(item.percentage)}
+                  </span>
+                </div>
+                <p className="mt-2 text-sm tabular-nums text-slate-600">
+                  {formatCurrency(item.value, currencySymbol)}
+                </p>
+              </li>
+            ))}
+          </ul>
+
+          {sortedData.length > topEntries.length && (
+            <p className="mt-4 text-sm text-slate-500">
+              +{sortedData.length - topEntries.length} more categories available in the chart.
+            </p>
+          )}
+        </div>
+      </div>
+    </section>
   );
 }

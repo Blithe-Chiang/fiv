@@ -19,14 +19,27 @@ const NAV_ITEMS: Array<{ id: View; label: string }> = [
 
 export function Header({ view, onViewChange }: HeaderProps) {
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 py-4">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-primary-600">Asset Portfolio Visualization</h1>
-            <p className="text-sm text-gray-600">Track, categorize, and visualize your assets</p>
+    <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/80 backdrop-blur-xl">
+      <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-2">
+            <span className="inline-flex rounded-full border border-primary-100 bg-primary-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-primary-700">
+              Asset Intelligence Workspace
+            </span>
+            <div>
+              <p className="text-xl font-semibold text-slate-950 sm:text-2xl">
+                Asset Portfolio Visualization
+              </p>
+              <p className="max-w-2xl text-sm text-slate-600">
+                Track category exposure, underlying positions, and portfolio composition in a
+                cleaner operating view.
+              </p>
+            </div>
           </div>
-          <nav className="flex flex-wrap gap-2" aria-label="Primary">
+          <nav
+            className="grid grid-cols-3 gap-1.5 rounded-2xl border border-slate-200 bg-slate-100/80 p-1.5 sm:min-w-[320px]"
+            aria-label="Primary"
+          >
             {NAV_ITEMS.map((item) => {
               const isActive = view === item.id;
               return (
@@ -34,10 +47,10 @@ export function Header({ view, onViewChange }: HeaderProps) {
                   key={item.id}
                   type="button"
                   onClick={() => onViewChange(item.id)}
-                  className={`min-h-[44px] min-w-[44px] rounded-md px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                  className={`min-h-[44px] min-w-[44px] rounded-xl px-4 py-2.5 text-center text-sm font-semibold transition duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
                     isActive
-                      ? 'bg-primary-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'border border-white bg-white text-slate-950 shadow-sm'
+                      : 'border border-transparent text-slate-600 hover:bg-white/70 hover:text-slate-900'
                   }`}
                   aria-current={isActive ? 'page' : undefined}
                 >

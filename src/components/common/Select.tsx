@@ -10,16 +10,16 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
 
 export function Select({ label, error, options, className = '', ...props }: SelectProps) {
   const selectClasses = `
-    w-full min-h-[44px] px-3 py-2 border rounded-md
-    focus:outline-none focus:ring-2 focus:ring-primary-500
-    ${error ? 'border-red-500' : 'border-gray-300'}
+    w-full min-h-[48px] rounded-xl border bg-white/95 px-4 py-3 text-slate-900 shadow-sm transition
+    focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+    ${error ? 'border-red-400' : 'border-slate-200'}
     ${className}
   `;
 
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="mb-2 block text-sm font-medium text-slate-700">
           {label}
         </label>
       )}
@@ -30,7 +30,7 @@ export function Select({ label, error, options, className = '', ...props }: Sele
           </option>
         ))}
       </select>
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
     </div>
   );
 }

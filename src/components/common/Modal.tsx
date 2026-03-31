@@ -64,29 +64,29 @@ export function Modal({ isOpen, onClose, title, children, footer }: ModalProps) 
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/60 p-3 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={onClose}
     >
       <div
         ref={modalRef}
-        className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4"
+        className="max-h-[calc(100vh-1.5rem)] w-full max-w-md overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_32px_80px_-36px_rgba(15,23,42,0.65)] sm:max-h-[calc(100vh-2rem)]"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 id={titleId} className="text-xl font-semibold text-gray-900">
+        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+          <h2 id={titleId} className="text-xl font-semibold text-slate-900">
             {title}
           </h2>
           <button
             onClick={onClose}
-            className="min-h-[44px] min-w-[44px] text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-md"
+            className="min-h-[44px] min-w-[44px] rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
             aria-label="Close modal"
           >
             <svg
-              className="w-6 h-6 mx-auto"
+              className="mx-auto h-6 w-6"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -102,10 +102,10 @@ export function Modal({ isOpen, onClose, title, children, footer }: ModalProps) 
         </div>
 
         {/* Body */}
-        <div className="p-4">{children}</div>
+        <div className="max-h-[calc(100vh-10rem)] overflow-y-auto px-5 py-4">{children}</div>
 
         {/* Footer */}
-        {footer && <div className="flex justify-end gap-2 p-4 border-t">{footer}</div>}
+        {footer && <div className="flex justify-end gap-2 border-t border-slate-200 px-5 py-4">{footer}</div>}
       </div>
     </div>
   );

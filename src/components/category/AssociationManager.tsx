@@ -91,14 +91,14 @@ export function AssociationManager({
             {linkedLargeCategories.map((lc) => (
               <div
                 key={lc.id}
-                className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                className="flex flex-col gap-3 rounded-lg bg-gray-50 p-3 sm:flex-row sm:items-center sm:justify-between"
               >
                 <span className="text-sm">{lc.name}</span>
                 <Button
                   variant="danger"
                   onClick={() => handleRemove(lc.id)}
                   disabled={submitting}
-                  className="text-xs px-2 py-1"
+                  className="w-full px-3 py-2 text-xs sm:w-auto"
                 >
                   Remove
                 </Button>
@@ -112,7 +112,7 @@ export function AssociationManager({
       {availableLargeCategories.length > 0 && (
         <div>
           <h5 className="text-sm font-medium text-gray-700 mb-2">Add New Association:</h5>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <Select
               value={selectedLargeCategoryId}
               onChange={(e) => setSelectedLargeCategoryId(e.target.value)}
@@ -128,6 +128,7 @@ export function AssociationManager({
             <Button
               onClick={handleAdd}
               disabled={!selectedLargeCategoryId || submitting}
+              className="w-full sm:w-auto"
             >
               Add
             </Button>
@@ -142,7 +143,7 @@ export function AssociationManager({
       )}
 
       <div className="flex justify-end pt-4">
-        <Button variant="secondary" onClick={onClose}>
+        <Button variant="secondary" onClick={onClose} className="w-full sm:w-auto">
           Done
         </Button>
       </div>

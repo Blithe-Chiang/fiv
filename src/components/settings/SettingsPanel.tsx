@@ -54,8 +54,8 @@ export function SettingsPanel({ currencySymbol, onSave }: SettingsPanelProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-4">Currency Settings</h2>
+    <div className="rounded-[28px] border border-slate-200/80 bg-white p-6 shadow-[0_20px_60px_-44px_rgba(15,23,42,0.35)]">
+      <h2 className="mb-4 text-xl font-semibold text-slate-950">Currency Settings</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
           label="Currency Symbol"
@@ -68,11 +68,11 @@ export function SettingsPanel({ currencySymbol, onSave }: SettingsPanelProps) {
           placeholder="$"
           maxLength={5}
         />
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-600">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-slate-600">
             Currently using: <strong>{currencySymbol}</strong>
           </p>
-          <Button type="submit" disabled={saving || !!error}>
+          <Button type="submit" disabled={saving || !!error} className="w-full sm:w-auto">
             {saving ? 'Saving...' : 'Save'}
           </Button>
         </div>

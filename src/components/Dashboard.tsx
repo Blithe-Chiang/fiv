@@ -3,14 +3,14 @@
  * Integrates asset management, portfolio summary, and category breakdown
  */
 
-import { useState, useMemo, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { usePortfolio } from '@/hooks/usePortfolio';
 import { Asset } from '@/types/entities';
 import { VisualizationMode, ChartType, AssetDraftUpdate } from '@/types/ui';
 import {
   calculateLargeCategoryBreakdown,
   calculateSmallCategoryBreakdown,
-  calculatePortfolioSummary
+  calculatePortfolioSummary,
 } from '@/services/calculations';
 import { applyAssetDraft } from '@/utils/assetDraft';
 import { Button } from './common/Button';
@@ -18,7 +18,6 @@ import { Modal } from './common/Modal';
 import { EmptyState } from './common/EmptyState';
 import { ErrorMessage } from './common/ErrorMessage';
 import { AssetForm } from './asset/AssetForm';
-import { AssetList } from './asset/AssetList';
 import { DeleteConfirmationModal } from './asset/DeleteConfirmationModal';
 import { PortfolioSummary } from './visualization/PortfolioSummary';
 import { LargeCategoryBreakdownTable } from './visualization/LargeCategoryBreakdownTable';
@@ -28,6 +27,7 @@ import { VisualizationControls } from './visualization/VisualizationControls';
 import { useToast } from './common/Toast';
 import { getUserFriendlyError } from '@/utils/errors';
 import { Skeleton } from './common/Skeleton';
+import { formatCurrency, formatPercentage } from '@/utils/formatters';
 
 type ModalState =
   | { type: 'none' }
@@ -50,6 +50,7 @@ export function Dashboard() {
       setDraftAsset(null);
       return;
     }
+
     if (draftAsset && draftAsset.id !== modalState.asset.id) {
       setDraftAsset(null);
     }
@@ -60,7 +61,6 @@ export function Dashboard() {
     [portfolio.assets, draftAsset]
   );
 
-  // Calculate portfolio metrics
   const portfolioSummary = useMemo(
     () => calculatePortfolioSummary(derivedAssets),
     [derivedAssets]
@@ -72,23 +72,50 @@ export function Dashboard() {
   );
 
   const smallCategoryBreakdown = useMemo(
-    () => calculateSmallCategoryBreakdown(
-      derivedAssets,
-      portfolio.largeCategories,
-      portfolio.smallCategories
-    ),
+    () =>
+      calculateSmallCategoryBreakdown(
+        derivedAssets,
+        portfolio.largeCategories,
+        portfolio.smallCategories
+      ),
     [derivedAssets, portfolio.largeCategories, portfolio.smallCategories]
+  );
+
+  const largestExposure = useMemo(
+    () =>
+      largeCategoryBreakdown.reduce<(typeof largeCategoryBreakdown)[number] | null>(
+        (currentLargest, currentBreakdown) => {
+          if (!currentLargest || currentBreakdown.percentage > currentLargest.percentage) {
+            return currentBreakdown;
+          }
+          return currentLargest;
+        },
+        null
+      ),
+    [largeCategoryBreakdown]
+  );
+
+  const largestPosition = useMemo(
+    () =>
+      derivedAssets.reduce<Asset | null>((currentLargest, asset) => {
+        if (!currentLargest || asset.amount > currentLargest.amount) {
+          return asset;
+        }
+        return currentLargest;
+      }, null),
+    [derivedAssets]
   );
 
   if (portfolio.loading) {
     return (
-      <div className="max-w-7xl mx-auto p-4 space-y-6">
+      <div className="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
         <div className="space-y-2">
-          <Skeleton className="h-8 w-56" />
-          <Skeleton className="h-4 w-80" />
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-4 w-96" />
         </div>
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-56 w-full rounded-[28px]" />
+        <Skeleton className="h-32 w-full rounded-[28px]" />
+        <Skeleton className="h-64 w-full rounded-[28px]" />
       </div>
     );
   }
@@ -101,9 +128,17 @@ export function Dashboard() {
     );
   }
 
-  const hasCategories = portfolio.largeCategories.length > 0 && portfolio.smallCategories.length > 0;
+  const hasCategories =
+    portfolio.largeCategories.length > 0 && portfolio.smallCategories.length > 0;
   const hasAssociations = portfolio.associations.length > 0;
   const hasAssets = portfolio.assets.length > 0;
+  const canAddAssets = hasCategories && hasAssociations;
+  const activeAssetId = modalState.type === 'editAsset' ? modalState.asset.id : null;
+
+  const closeAssetModal = () => {
+    setDraftAsset(null);
+    setModalState({ type: 'none' });
+  };
 
   const handleCreateAsset = async (data: {
     name: string;
@@ -113,7 +148,7 @@ export function Dashboard() {
   }) => {
     try {
       await portfolio.createAsset(data);
-      setModalState({ type: 'none' });
+      closeAssetModal();
       setError('');
       toast.success('Asset added', `${data.name} was added to your portfolio.`);
     } catch (err: any) {
@@ -132,9 +167,8 @@ export function Dashboard() {
   ) => {
     try {
       await portfolio.updateAsset(id, data);
-      setModalState({ type: 'none' });
+      closeAssetModal();
       setError('');
-      setDraftAsset(null);
       toast.success('Asset updated', `${data.name} was updated.`);
     } catch (err: any) {
       throw new Error(getUserFriendlyError(err, 'Failed to update asset'));
@@ -142,13 +176,14 @@ export function Dashboard() {
   };
 
   const handleDeleteAsset = async (id: string) => {
-    const asset = portfolio.assets.find((a) => a.id === id);
+    const asset = portfolio.assets.find((item) => item.id === id);
     if (!asset) return;
     setModalState({ type: 'deleteAsset', asset });
   };
 
   const confirmDeleteAsset = async () => {
     if (modalState.type !== 'deleteAsset') return;
+
     try {
       setDeletingAssetId(modalState.asset.id);
       await portfolio.deleteAsset(modalState.asset.id);
@@ -163,33 +198,99 @@ export function Dashboard() {
     }
   };
 
-  // Check if user can add assets
-  const canAddAssets = hasCategories && hasAssociations;
-
   return (
-    <div className="max-w-7xl mx-auto p-4 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Portfolio Dashboard</h1>
-          <p className="text-gray-600">Track and visualize your investment portfolio</p>
+    <div className="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:space-y-8 lg:px-8">
+      <section className="relative overflow-hidden rounded-[32px] border border-slate-200/70 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-5 py-6 text-white shadow-[0_28px_80px_-40px_rgba(15,23,42,0.95)] sm:px-8 sm:py-8">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(96,165,250,0.28),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(148,163,184,0.16),transparent_30%)]" />
+        <div className="relative grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] xl:items-end">
+          <div className="space-y-5">
+            <div className="space-y-3">
+              <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.26em] text-slate-200">
+                Portfolio Command Center
+              </span>
+              <div className="space-y-3">
+                <h1 className="text-3xl font-semibold sm:text-4xl">
+                  Portfolio Dashboard
+                </h1>
+                <p className="max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
+                  Review total exposure, compare category allocation, and manage underlying asset
+                  positions from a single operational view tailored for portfolio analysis.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+              <Button
+                onClick={() => setModalState({ type: 'createAsset' })}
+                disabled={!canAddAssets}
+                className="w-full border-primary-400 bg-primary-500 text-white shadow-[0_20px_40px_-20px_rgba(37,99,235,0.9)] hover:border-primary-300 hover:bg-primary-400 sm:w-auto"
+              >
+                Add Asset
+              </Button>
+              <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300">
+                {hasAssets
+                  ? `${portfolioSummary.totalAssets} positions across ${portfolioSummary.largeCategoryCount} large categories`
+                  : canAddAssets
+                    ? 'Categories are ready. Start populating the portfolio with asset positions.'
+                    : 'Create categories and associations first to unlock portfolio tracking.'}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+            <div className="rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">
+                Total Portfolio
+              </p>
+              <p className="mt-3 text-3xl font-semibold tabular-nums text-white">
+                {formatCurrency(portfolioSummary.totalValue, portfolio.settings.currencySymbol)}
+              </p>
+              <p className="mt-2 text-sm text-slate-300">
+                Full current market value tracked across all recorded assets.
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">
+                Largest Allocation
+              </p>
+              <p className="mt-3 text-lg font-semibold text-white">
+                {largestExposure?.categoryName ?? 'No category data'}
+              </p>
+              <p className="mt-1 text-sm tabular-nums text-slate-200">
+                {largestExposure
+                  ? `${formatPercentage(largestExposure.percentage)} · ${formatCurrency(
+                      largestExposure.totalAmount,
+                      portfolio.settings.currencySymbol
+                    )}`
+                  : 'Add assets to see the current allocation leader.'}
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">
+                Largest Position
+              </p>
+              <p className="mt-3 text-lg font-semibold text-white">
+                {largestPosition?.name ?? 'No asset positions'}
+              </p>
+              <p className="mt-1 text-sm tabular-nums text-slate-200">
+                {largestPosition
+                  ? formatCurrency(largestPosition.amount, portfolio.settings.currencySymbol)
+                  : 'Once assets are added, the top individual position will appear here.'}
+              </p>
+            </div>
+          </div>
         </div>
-        <Button
-          onClick={() => setModalState({ type: 'createAsset' })}
-          disabled={!canAddAssets}
-        >
-          Add Asset
-        </Button>
-      </div>
+      </section>
 
       {error && <ErrorMessage message={error} onDismiss={() => setError('')} />}
 
-      {/* Prerequisites Check */}
       {!hasCategories && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
-          <div className="flex items-start">
+        <div className="rounded-[28px] border border-amber-200 bg-amber-50/95 p-5 shadow-sm">
+          <div className="flex items-start gap-3">
             <svg
-              className="w-5 h-5 text-yellow-600 mt-0.5 mr-3"
+              className="mt-0.5 h-5 w-5 shrink-0 text-amber-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -202,8 +303,8 @@ export function Dashboard() {
               />
             </svg>
             <div>
-              <h3 className="text-sm font-medium text-yellow-800">Categories Required</h3>
-              <p className="text-sm text-yellow-700 mt-1">
+              <h3 className="text-sm font-semibold text-amber-900">Categories Required</h3>
+              <p className="mt-1 text-sm leading-6 text-amber-800">
                 You need to create categories before adding assets. Please set up your large and
                 small categories first.
               </p>
@@ -213,10 +314,10 @@ export function Dashboard() {
       )}
 
       {hasCategories && !hasAssociations && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
-          <div className="flex items-start">
+        <div className="rounded-[28px] border border-amber-200 bg-amber-50/95 p-5 shadow-sm">
+          <div className="flex items-start gap-3">
             <svg
-              className="w-5 h-5 text-yellow-600 mt-0.5 mr-3"
+              className="mt-0.5 h-5 w-5 shrink-0 text-amber-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -229,8 +330,8 @@ export function Dashboard() {
               />
             </svg>
             <div>
-              <h3 className="text-sm font-medium text-yellow-800">Associations Required</h3>
-              <p className="text-sm text-yellow-700 mt-1">
+              <h3 className="text-sm font-semibold text-amber-900">Associations Required</h3>
+              <p className="mt-1 text-sm leading-6 text-amber-800">
                 You need to link your small categories to large categories before adding assets.
                 Please create category associations first.
               </p>
@@ -239,11 +340,10 @@ export function Dashboard() {
         </div>
       )}
 
-      {/* Empty State */}
       {canAddAssets && !hasAssets && (
         <EmptyState
           title="No assets yet"
-          description="Start building your portfolio by adding your first asset. Track stocks, bonds, real estate, and more."
+          description="Start building your portfolio by adding your first asset. After that, each small category section will list the underlying asset positions directly in the breakdown."
           action={{
             label: 'Add Your First Asset',
             onClick: () => setModalState({ type: 'createAsset' }),
@@ -251,20 +351,36 @@ export function Dashboard() {
         />
       )}
 
-      {/* Portfolio Content */}
       {hasAssets && (
         <>
-          {/* Portfolio Summary */}
-          <PortfolioSummary summary={portfolioSummary} currencySymbol={portfolio.settings.currencySymbol} />
+          <PortfolioSummary
+            summary={portfolioSummary}
+            currencySymbol={portfolio.settings.currencySymbol}
+          />
 
-          {/* Large Category Breakdown */}
           <LargeCategoryBreakdownTable
             breakdowns={largeCategoryBreakdown}
             currencySymbol={portfolio.settings.currencySymbol}
           />
 
-          {/* Small Category Breakdown - Detailed Visualization */}
-          <div className="space-y-4">
+          <section className="space-y-4">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+              <div className="space-y-2">
+                <span className="inline-flex rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 shadow-sm">
+                  Drilldown
+                </span>
+                <div>
+                  <h2 className="text-2xl font-semibold text-slate-950">
+                    Small-category exposure and underlying positions
+                  </h2>
+                  <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">
+                    Switch between a detailed operating table and a visual chart to review how
+                    category allocation is built from individual assets.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <VisualizationControls
               mode={visualizationMode}
               chartType={chartType}
@@ -275,7 +391,15 @@ export function Dashboard() {
             {visualizationMode === 'table' ? (
               <SmallCategoryBreakdownTable
                 breakdowns={smallCategoryBreakdown}
+                assets={derivedAssets}
                 currencySymbol={portfolio.settings.currencySymbol}
+                selectedAssetId={activeAssetId}
+                onEditAsset={(id) => {
+                  const asset = portfolio.assets.find((item) => item.id === id);
+                  if (!asset) return;
+                  setModalState({ type: 'editAsset', asset });
+                }}
+                onDeleteAsset={handleDeleteAsset}
               />
             ) : (
               <BreakdownChart
@@ -285,29 +409,13 @@ export function Dashboard() {
                 title="Small Category Breakdown"
               />
             )}
-          </div>
-
-          {/* Asset List */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Your Assets</h3>
-            </div>
-            <AssetList
-              assets={portfolio.assets}
-              largeCategories={portfolio.largeCategories}
-              smallCategories={portfolio.smallCategories}
-              currencySymbol={portfolio.settings.currencySymbol}
-              onEdit={(asset) => setModalState({ type: 'editAsset', asset })}
-              onDelete={handleDeleteAsset}
-            />
-          </div>
+          </section>
         </>
       )}
 
-      {/* Create Asset Modal */}
       <Modal
         isOpen={modalState.type === 'createAsset'}
-        onClose={() => setModalState({ type: 'none' })}
+        onClose={closeAssetModal}
         title="Add New Asset"
       >
         <AssetForm
@@ -316,14 +424,13 @@ export function Dashboard() {
           associations={portfolio.associations}
           currencySymbol={portfolio.settings.currencySymbol}
           onSubmit={handleCreateAsset}
-          onCancel={() => setModalState({ type: 'none' })}
+          onCancel={closeAssetModal}
         />
       </Modal>
 
-      {/* Edit Asset Modal */}
       <Modal
         isOpen={modalState.type === 'editAsset'}
-        onClose={() => setModalState({ type: 'none' })}
+        onClose={closeAssetModal}
         title="Edit Asset"
       >
         {modalState.type === 'editAsset' && (
@@ -335,20 +442,17 @@ export function Dashboard() {
             currencySymbol={portfolio.settings.currencySymbol}
             onDraftChange={setDraftAsset}
             onSubmit={(data) => handleUpdateAsset(modalState.asset.id, data)}
-            onCancel={() => setModalState({ type: 'none' })}
+            onCancel={closeAssetModal}
           />
         )}
       </Modal>
 
-      {/* Delete Asset Confirmation Modal */}
       <DeleteConfirmationModal
         isOpen={modalState.type === 'deleteAsset'}
         assetName={modalState.type === 'deleteAsset' ? modalState.asset.name : ''}
         onConfirm={confirmDeleteAsset}
         onCancel={() => setModalState({ type: 'none' })}
-        isDeleting={
-          modalState.type === 'deleteAsset' && deletingAssetId === modalState.asset.id
-        }
+        isDeleting={modalState.type === 'deleteAsset' && deletingAssetId === modalState.asset.id}
       />
     </div>
   );

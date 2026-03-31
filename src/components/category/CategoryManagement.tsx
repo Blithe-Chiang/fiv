@@ -150,21 +150,31 @@ export function CategoryManagement() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Category Management</h1>
-        <p className="text-gray-600">
+    <div className="mx-auto max-w-5xl space-y-6 px-4 sm:px-6 lg:px-8">
+      <section className="rounded-[28px] border border-slate-200/80 bg-white px-5 py-6 shadow-[0_20px_60px_-44px_rgba(15,23,42,0.35)] sm:px-6">
+        <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+          Category Model
+        </span>
+        <h1 className="mt-4 text-3xl font-semibold text-slate-950">Category Management</h1>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
           Define large and small categories for organizing your assets
         </p>
-      </div>
+      </section>
 
       {error && <ErrorMessage message={error} onDismiss={() => setError('')} />}
 
-      <div className="flex gap-4 mb-6">
-        <Button onClick={() => setModalState({ type: 'createLarge' })}>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <Button
+          onClick={() => setModalState({ type: 'createLarge' })}
+          className="w-full sm:w-auto"
+        >
           Add Large Category
         </Button>
-        <Button variant="secondary" onClick={() => setModalState({ type: 'createSmall' })}>
+        <Button
+          variant="secondary"
+          onClick={() => setModalState({ type: 'createSmall' })}
+          className="w-full sm:w-auto"
+        >
           Add Small Category
         </Button>
       </div>

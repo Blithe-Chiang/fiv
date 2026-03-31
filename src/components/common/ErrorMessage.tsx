@@ -9,10 +9,10 @@ interface ErrorMessageProps {
 
 export function ErrorMessage({ message, onDismiss }: ErrorMessageProps) {
   return (
-    <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
+    <div className="mb-4 rounded-2xl border border-red-200 bg-red-50/95 p-4 shadow-sm">
       <div className="flex items-start">
         <svg
-          className="w-5 h-5 text-red-600 mt-0.5 mr-3"
+          className="mt-0.5 mr-3 h-5 w-5 text-red-600"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -25,16 +25,16 @@ export function ErrorMessage({ message, onDismiss }: ErrorMessageProps) {
           />
         </svg>
         <div className="flex-1">
-          <p className="text-sm text-red-800">{message}</p>
+          <p className="text-sm leading-6 text-red-800">{message}</p>
         </div>
         {onDismiss && (
           <button
             type="button"
             onClick={onDismiss}
-            className="ml-3 min-h-[44px] min-w-[44px] rounded-md text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            className="ml-3 min-h-[44px] min-w-[44px] rounded-xl text-red-600 hover:bg-red-100 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
             aria-label="Dismiss"
           >
-            <svg className="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="mx-auto h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
