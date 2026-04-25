@@ -159,7 +159,8 @@ export function validateReferentialIntegrity(data: PortfolioData): string[] {
 
 /**
  * Merge imported data into existing data
- * - Skip entities with existing IDs
+ * - Keep the newest asset when IDs match, based on updatedAt
+ * - Skip categories and associations with existing IDs
  * - Skip entities with conflicting names (different IDs but same name)
  * - Add new entities
  * @param existingData Current portfolio data
@@ -235,13 +236,18 @@ export function mergeImportData(
 
   // Merge assets
   for (const imported of importedData.assets) {
-    const exists = existingData.assets.some((a) => a.id === imported.id);
+    const existingIndex = existingData.assets.findIndex((a) => a.id === imported.id);
 
-    if (exists) {
-      result.skipped.assets++;
-    } else {
+    if (existingIndex === -1) {
       existingData.assets.push(imported);
       result.imported.assets++;
+    } else if (
+      Date.parse(imported.updatedAt) > Date.parse(existingData.assets[existingIndex].updatedAt)
+    ) {
+      existingData.assets[existingIndex] = imported;
+      result.imported.assets++;
+    } else {
+      result.skipped.assets++;
     }
   }
 

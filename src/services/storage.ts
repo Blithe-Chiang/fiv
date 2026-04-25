@@ -647,10 +647,8 @@ export class StorageService {
 
       // Import assets
       for (const asset of data.assets) {
-        const existing = this.data.assets.find((a) => a.id === asset.id);
-        if (existing) {
-          result.skipped.assets++;
-        } else {
+        const existingIndex = this.data.assets.findIndex((a) => a.id === asset.id);
+        if (existingIndex === -1) {
           // Check if categories and association exist
           const smallExists = this.data.smallCategories.some((c) => c.id === asset.smallCategoryId);
           const largeExists = this.data.largeCategories.some((c) => c.id === asset.largeCategoryId);
@@ -664,6 +662,13 @@ export class StorageService {
           } else {
             result.skipped.assets++;
           }
+        } else if (
+          Date.parse(asset.updatedAt) > Date.parse(this.data.assets[existingIndex].updatedAt)
+        ) {
+          this.data.assets[existingIndex] = asset;
+          result.imported.assets++;
+        } else {
+          result.skipped.assets++;
         }
       }
 
